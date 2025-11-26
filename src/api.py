@@ -2,7 +2,7 @@ import requests
 import time
 import json
 
-def get_employers_vacancies_hh(employers_ids):
+def get_employers_hh(employers_ids):
     data = []
     for employer_id in employers_ids:
         url = f'https://api.hh.ru/employers/{employer_id}'
@@ -22,9 +22,34 @@ def get_employers_vacancies_hh(employers_ids):
             print(f"Ошибка при запросе к API: {e}")
     return data
 
+
+def get_vacancies_hh_one_employer(employers_ids):
+    data_vacancies = []
+    for employer_id in employers_ids:
+        url = f'https://api.hh.ru/vacancies?employer_id={employer_id}'
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/91.0.4472.124 Safari/537.36"
+        }
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            vacancies = response.json()['items']
+            data_vacancies.extend(vacancies)
+            time.sleep(0.5)  # Задержка
+
+
+        except requests.exceptions.RequestException as e:
+            print(f"Ошибка при запросе к API: {e}")
+    return data_vacancies
+
+
+
+
+
 # Пример использования:
 if __name__ == "__main__":
-    employer_data_list = get_employers_vacancies_hh(['1122462', '67611',])  # Skyeng, Тензор
+    employer_data_list = get_employers_hh(['1122462', '67611',])  # Skyeng, Тензор
 
 
     print(f"Получено {len(employer_data_list)} работодателей.")
@@ -54,7 +79,14 @@ if __name__ == "__main__":
 
     print("\n\nВывод сводной информации по всем работодателям:")
     # Печатаем весь общий словарь после завершения цикла
-    print(json.dumps(all_filtered_employers, indent=4, ensure_ascii=False))
+    all_filtered_employers_json = json.dumps(all_filtered_employers, indent=4, ensure_ascii=False)
+
+    vacancies_data_list = get_vacancies_hh_one_employer(['1122462', '67611',])
+    print(json.dumps(vacancies_data_list, indent=4, ensure_ascii=False))
+
+
+
+
 
 
 
