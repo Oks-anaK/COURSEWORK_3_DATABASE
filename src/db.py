@@ -2,7 +2,7 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 
-def create_database(database_name, params):
+def create_database(database_name: str, params: dict):
     """Пересоздаёт базу данных, завершая все активные сеансы."""
     # Подключаемся к postgres БД
     conn = psycopg2.connect(dbname="postgres", **params)

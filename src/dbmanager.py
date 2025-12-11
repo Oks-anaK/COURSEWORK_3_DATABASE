@@ -1,4 +1,5 @@
-from typing import Any, Optional, List, Tuple
+from typing import Any, List, Optional, Tuple
+
 import psycopg2
 
 

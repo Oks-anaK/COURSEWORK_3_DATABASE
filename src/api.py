@@ -1,46 +1,69 @@
-import json
 import time
+from typing import Any, Dict, List
 
 import requests
 
+# Константа для заголовков
+API_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
 
-def get_employers_hh(employers_ids):
+# Константа для задержки между запросами
+REQUEST_DELAY = 0.5
+
+
+def get_employers_hh(employers_ids: List[str]) -> List[Dict[str, Any]]:
+    """Получает данные о работодателях через API hh.ru.
+
+    Args:
+        employers_ids: Список ID работодателей для получения данных
+
+    Returns:
+        Список словарей с данными о работодателях
+    """
     data = []
+
     for employer_id in employers_ids:
         url = f"https://api.hh.ru/employers/{employer_id}"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/91.0.4472.124 Safari/537.36"
-        }
+
         try:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=API_HEADERS)
             response.raise_for_status()
-            vacancies = response.json()
-            data.append(vacancies)
-            time.sleep(0.5)  # Задержка
+            employer_data = response.json()
+            data.append(employer_data)
+            time.sleep(REQUEST_DELAY)
 
         except requests.exceptions.RequestException as e:
-            print(f"Ошибка при запросе к API: {e}")
+            print(f"Ошибка при запросе к API для работодателя {employer_id}: {e}")
+
     return data
 
 
-def get_vacancies_hh_one_employer(employers_ids):
+def get_vacancies_hh_one_employer(employers_ids: List[str]) -> List[Dict[str, Any]]:
+    """Получает вакансии работодателей через API hh.ru.
+
+    Args:
+        employers_ids: Список ID работодателей для получения вакансий
+
+    Returns:
+        Список словарей с данными о вакансиях (без дубликатов)
+    """
     data_vacancies = []
     seen_vacancy_ids = set()  # Множество для хранения уникальных ID вакансий
+    per_page = 100  # Максимум вакансий на страницу
 
     for employer_id in employers_ids:
         page = 0
-        per_page = 100  # Максимум на страницу
 
         while True:
-            url = f"https://api.hh.ru/vacancies?employer_id={employer_id}&per_page={per_page}&page={page}"
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/91.0.4472.124 Safari/537.36"
-            }
+            url = (
+                f"https://api.hh.ru/vacancies?"
+                f"employer_id={employer_id}&per_page={per_page}&page={page}"
+            )
 
             try:
-                response = requests.get(url, headers=headers)
+                response = requests.get(url, headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
 
@@ -48,25 +71,25 @@ def get_vacancies_hh_one_employer(employers_ids):
                 if not vacancies:  # Если нет вакансий на странице - выходим
                     break
 
+                # Добавляем только уникальные вакансии
                 for vacancy in vacancies:
-                    vacancy_id = vacancy.get("id")  # Получаем уникальный ID вакансии
+                    vacancy_id = vacancy.get("id")
                     if vacancy_id and vacancy_id not in seen_vacancy_ids:
                         data_vacancies.append(vacancy)
                         seen_vacancy_ids.add(vacancy_id)
 
                 # Проверяем, есть ли ещё страницы
                 pages = data.get("pages", 0)
-
-                # Если это последняя страница или получили все вакансии - выходим
                 if page >= pages - 1 or len(vacancies) < per_page:
                     break
 
                 page += 1
-                time.sleep(0.5)  # Задержка между запросами
+                time.sleep(REQUEST_DELAY)
 
             except requests.exceptions.RequestException as e:
                 print(
-                    f"Ошибка при запросе к API для работодателя {employer_id}, страница {page}: {e}"
+                    f"Ошибка при запросе к API для работодателя {employer_id}, "
+                    f"страница {page}: {e}"
                 )
                 break  # При ошибке переходим к следующему работодателю
 
