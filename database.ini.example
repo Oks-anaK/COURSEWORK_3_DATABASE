@@ -1,5 +1,5 @@
 [postgresql]
 host=my_host
-user=my_name
+user=my_user
 password=my_password
 port=my_port
