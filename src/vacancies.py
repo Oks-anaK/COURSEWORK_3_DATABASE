@@ -1,11 +1,18 @@
 from typing import Any, Optional, Union
-from api import get_vacancies_hh_one_employer
+
 
 class Vacancy:
     """Класс для работы с вакансиями, поддерживает методы сравнения
     вакансий между собой по зарплате и валидирует данные."""
 
-    __slots__ = ["id_vacancy", "title", "id_employer_vacancy", "url_employer", "description", "_avg_salary"]
+    __slots__ = [
+        "id_vacancy",
+        "title",
+        "id_employer_vacancy",
+        "url_employer",
+        "description",
+        "_avg_salary",
+    ]
 
     # Аннотации атрибутов
     id_vacancy: int
@@ -14,7 +21,6 @@ class Vacancy:
     url_employer: str
     description: str
     _avg_salary: float
-
 
     def __init__(
         self,
@@ -35,11 +41,16 @@ class Vacancy:
         self._avg_salary = self.__validate_salary(salary_from, salary_to)
 
     def __validate_salary(
-        self, salary_from: Optional[Union[int, float]], salary_to: Optional[Union[int, float]]
+        self,
+        salary_from: Optional[Union[int, float]],
+        salary_to: Optional[Union[int, float]],
     ) -> float:
         """Функция валидации данных о зарплате."""
         if salary_from is not None and salary_to is not None:
-            if not (isinstance(salary_from, (int, float)) and isinstance(salary_to, (int, float))):
+            if not (
+                isinstance(salary_from, (int, float))
+                and isinstance(salary_to, (int, float))
+            ):
                 raise ValueError("Зарплата должна быть числом")
             return (salary_from + salary_to) / 2
         elif salary_from is not None:
@@ -120,4 +131,3 @@ class Vacancy:
 #     v1 = Vacancy("название", "lf", 10, 20, "ножницы")
 #     _list = [v, v1]
 #     [print(v) for v in sorted(_list, reverse=True)]
-
